@@ -1,0 +1,57 @@
+# Helper function to require scripts using Node
+def node_require(script)
+  require Pod::Executable.execute_command('node', ['-p',
+    "require.resolve('#{script}', {paths: [process.argv[1]]})", __dir__]).strip
+end
+
+# Load required scripts for React Native and permissions setup
+node_require('react-native/scripts/react_native_pods.rb')
+node_require('react-native-permissions/scripts/setup.rb')
+
+platform :ios, min_ios_version_supported
+prepare_react_native_project!
+
+# Configure app permissions (only 'Camera' is enabled)
+setup_permissions([
+  'Camera'
+])
+
+# If you are using `react-native-flipper`, the iOS build will fail if `NO_FLIPPER=1` is set.
+# FlipperKit dependencies will be excluded if you set NO_FLIPPER=1.
+# To fix this, you can exclude `react-native-flipper` by using a `react-native.config.js` as shown below.
+# module.exports = {
+#   dependencies: {
+#     ...(process.env.NO_FLIPPER ? { 'react-native-flipper': { platforms: { ios: null } } } : {}),
+# }
+
+linkage = ENV['USE_FRAMEWORKS']
+if linkage != nil
+  Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
+  use_frameworks! :linkage => linkage.to_sym
+end
+
+target 'NcsBookingApp' do
+  config = use_native_modules!
+
+  use_react_native!(
+    :path => config[:reactNativePath],
+    # Enables Flipper for iOS.
+    #
+    # If you are using use_frameworks!, Flipper will not work.
+    # :flipper_configuration => flipper_config,
+    :app_path => "#{Pod::Config.instance.installation_root}/.."
+  )
+
+  target 'NcsBookingAppTests' do
+    inherit! :complete
+    # Pods for testing
+  end
+
+  post_install do |installer|
+    react_native_post_install(
+      installer,
+      config[:reactNativePath],
+      :mac_catalyst_enabled => false
+    )
+  end
+end
