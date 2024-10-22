@@ -1,1 +1,1 @@
-export {CameraScanner} from './CameraScanner/CameraScanner';
+export {SortDialog} from './dialogs/SortDialog';
