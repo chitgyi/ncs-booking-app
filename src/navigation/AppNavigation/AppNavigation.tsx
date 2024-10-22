@@ -9,7 +9,6 @@ export type RootStackParamList = {
   RoomList: undefined;
   Scanner: undefined;
   WebView: {uri: String};
-  Test: undefined;
 };
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
